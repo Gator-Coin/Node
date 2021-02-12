@@ -1,4 +1,6 @@
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from BlockUtils import BlockUtils
 
 
 class Wallet():
@@ -6,8 +8,8 @@ class Wallet():
     def __init__(self):
         self.keyPair = RSA.generate(2048)
 
-    def sign(self, sign):
-        pass
+    def sign(self, data):
+        dataHash = BlockUtils.hash(data)
 
 
 
