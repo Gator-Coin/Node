@@ -8,7 +8,7 @@ import string
 from Transaction import Transaction
 from Block import Block
 from Blockchain import Blockchain
-
+from Wallet import Wallet
 
 
 
@@ -18,6 +18,9 @@ from Blockchain import Blockchain
 #Test Run
 if __name__ == '__main__':
     print('PyCharm')
+
+    #Testing Out if Signature really works
+    #Testing Transaction
     sender   = 'sender'
     reciever = 'receiver'
     amount   = 1
@@ -26,6 +29,18 @@ if __name__ == '__main__':
     transaction = Transaction(sender, reciever, amount, type)
     print(transaction)
     print(transaction.toJson())
+
+    #Testing Wallet
+    wallet = Wallet()
+    signature = wallet.sign(transaction.toJson())
+    transaction.sign(signature) #Comment out
+    print(transaction.toJson())
+
+    signatureValid = Wallet.signatureValid(transaction.toJson(), \
+                                           signature, wallet.publicKeyString())
+    ##TODO create a more valid working signature
+    print(signatureValid)# This is dependent on signature being commented out-> not the same information to create the hash
+
 
 
 

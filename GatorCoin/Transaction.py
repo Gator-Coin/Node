@@ -2,8 +2,6 @@ import uuid
 import time
 
 """TODO/ random thought, Immutability?, especially of something like gensis block?"""
-# contains send reciever amount time hash
-
 class Transaction():
 
     def __init__(self, senderPublicKey, recieverPublicKey, amount, type):
@@ -19,6 +17,8 @@ class Transaction():
     def toJson(self):
         return self.__dict__
 
+    def sign(self, signer):
+        self.signature=signer
 
 
 
