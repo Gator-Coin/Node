@@ -1,50 +1,64 @@
-from hashlib import sha256 as magic
-
-import datetime
-
-
-class BlockUtils:
-  @staticmethod
-  def hash(data):
-    return magic((datetime.datetime.now().strftime("%H:%M:%S")).encode('utf-8')).hexdigest()
-
-class Blockchain(object):
-    def __init__(self, val, next=None):
-        self.block = val
-        self.next = next
-
-# block object is list
-class Block(list):
-    def __init__(self, previousHash):
-        self.hash = BlockUtils.hash(previousHash) 
-        self.previous = previousHash
-        pass
-    
-    def addTransaction(self,transaction):
-        self.append(transaction)
-
-# transaction object
-class Transaction(object):
-    def __init__(self, sender, reciever, amount):
-        self.sender    = sender
-        self.reciever  = reciever
-        self.amount    = amount
-        self.transTime = datetime.datetime.now()
-        self.id        = magic((sender+reciever).encode('utf-8')).hexdigest() 
+# please document code using this style
+# https://docutils.sourceforge.io/rst.html
 
 
-# Test Run 
-if __name__ == '__main__':
-  genBlock = Block(0)
-  t1 = Transaction("Sender", "Reciever", 300)
-  t2 = Transaction("Jade", "Miguel", 900)
-  t3 = Transaction("Dustin", "Zach", 1500)
-  genBlock.addTransaction(t1)
-  genBlock.addTransaction(t2)
-  genBlock.addTransaction(t3)
-  blockchain = Blockchain(genBlock)
+from time import time as timestamp
+from hashlib import sha256
+import json
+
+class Ledger(list):
+    def __init__(self):
+        self.pending_transactions = []
+
+    def add_transaction(self, sender, receiver, amount):
+    """ 
+    Adds a new transactions to the pending_transactions list. 
   
-  for b in blockchain:
-    print(b)
+    The pending_transactions list are all the transactions on the
+    network that need to be packed into the next block. 
+  
+    Parameters: 
+    sender (key): public key of the sender
+    receiver(key): private key of the receiver
+    amount(int): Amount of curency being transacted 
+  
+    Returns: 
+    int : 0  
+  
+    """
+        self.pending_transactions.append(
+            Transaction(sender, receiver, amount))
+
+    def new_block(self, proof):
+        pass
+
+    def save(self, file_path):
+        json.dump(self, open(file_path, 'w'))
+
+    def load(self, file_path):
+        json.load(self, open(file_path, 'r'))
 
 
+class Block(dict):
+    def __init__(self, proof, transactions):
+        self["proof"] = proof
+        self["transactions"] = transactions
+        self["timestamp"] = str(timestamp())
+
+    def json(self):
+        return json.dumps(self, indent=2, sort_keys=True)
+
+    def hash(self):
+        return sha256(self.json().encode("utf8")).hexdigest()
+
+
+class Transaction(dict):
+    def __init__(self, sender, receiver, amount):
+        self["sender"] = sender
+        self["receiver"] = receiver
+        self["amount"] = amount
+        self["timestamp"] = str(timestamp())
+
+if __name__ == '__main__':
+    ledger = Ledger()
+    ledger.add
