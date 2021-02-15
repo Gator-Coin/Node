@@ -1,50 +1,133 @@
-from hashlib import sha256 as magic
+# please document code using this style
+# https://docutils.sourceforge.io/rst.html
 
-import datetime
 
+from time import time as timestamp
+from hashlib import sha256
+import json
 
-class BlockUtils:
-  @staticmethod
-  def hash(data):
-    return magic((datetime.datetime.now().strftime("%H:%M:%S")).encode('utf-8')).hexdigest()
+class Ledger(list):
+    def __init__(self, file_path = None):
+        """ 
+        Creates a new Ledger object that cotains 
 
-class Blockchain(object):
-    def __init__(self, val, next=None):
-        self.block = val
-        self.next = next
+        :param filename: loads from a file names relative or absolute path
+        """
+        self.pending_transactions = []
+        if file_path:
+            self.load(file_path)
+        else:
+            self = list()
 
-# block object is list
-class Block(list):
-    def __init__(self, previousHash):
-        self.hash = BlockUtils.hash(previousHash) 
-        self.previous = previousHash
-        pass
+    def add_transaction(self, sender, receiver, amount):
+        """ 
+        Adds a new transactions to the pending_transactions list. 
     
-    def addTransaction(self,transaction):
-        self.append(transaction)
+        The pending_transactions list are all the transactions on the
+        network that need to be packed into the next block. 
+    
+        :param sender: public key of the sender
+        :param receiver: private key of the receiver
+        :param amount: Amount of curency being transacted 
+    
+        :returns: true if the transaction was added to the list else returns the error
+        """
+        self.pending_transactions.append(
+            Transaction(sender, receiver, amount))
 
-# transaction object
-class Transaction(object):
-    def __init__(self, sender, reciever, amount):
-        self.sender    = sender
-        self.reciever  = reciever
-        self.amount    = amount
-        self.transTime = datetime.datetime.now()
-        self.id        = magic((sender+reciever).encode('utf-8')).hexdigest() 
+    def new_block(self, proof):
+        """ 
+        TODO: Create a new_block method
+    
+        :param proof: proof needs to be a byte object that can be hashed with the proof from the last block. 
+    
+        :returns: true if the block was created to
+
+        :throws: Invalid proof
+        """
+        pass
+
+    def save(self, file_path):
+        """ 
+        Overwrite a file with the blockchain
+    
+        :param file_path: reletive or absoulte path of the file to overwrite with the blockchain
+    
+        :returns: true if the file was saved
+
+        :throws: IOError
+        """
+        json.dump(self, open(file_path, 'w'))
 
 
-# Test Run 
+    def load(self, file_path):
+        """ 
+        Loads a json file containing the blockchain
+    
+        :param file_path: reletive or absoulte path of the file to overwrite with the blockchain
+    
+        :returns: true if the file was saved
+
+        :throws: IOError
+        """
+        json.load(self, open(file_path, 'r'))
+
+    def update(self, file_path):
+        """ 
+        TODO: Create a function that appends a file with blocks not yet added to file
+        its important to make this work incrementally so when the file grows large the
+        node isnt forced to store the entire blockchain in memory
+    
+        :param file_path: reletive or absoulte path of the file to overwrite with the blockchain
+    
+        :returns: true if the file was saved
+
+        :throws: IOError
+        """
+        pass
+
+class Block(dict):
+    """ 
+    Creates a new block object
+
+    :param filename: loads from a file names relative or absolute path
+    """
+    def __init__(self, proof, transactions):
+        self["proof"] = proof
+        self["transactions"] = transactions
+        self["timestamp"] = str(timestamp())
+
+    def __json__(self):
+        """ 
+        :returns: the json representation of the block in the correct format to work with the hasing function
+        """
+        return json.dumps(self, indent=2, sort_keys=True)
+
+    def hash(self):
+        """ 
+        :returns: a hexidecimal hash that is unique to the block
+        """
+        return sha256(self.__json__().encode("utf8")).hexdigest()
+
+
+class Transaction(dict):
+    def __init__(self, sender, receiver, proof=0, amount=0):
+        """
+        This is a object that represents a transaction that will be loaded into a blockchain
+        TODO:   *Cryptographically authenticate this based on a private key.
+                *Confirm that the sender has enoguh currency to make the transaction.
+
+        :param sender: the public key of the sender
+        :param receiver: the public key of the receiver
+        :param proof: the cryptographic evedence that the sender is the one who created the transaction.
+        :param amount:  the amount of currency being sent to the receivers wallet.
+
+        """
+        self["sender"] = sender
+        self["receiver"] = receiver
+        self["amount"] = int(amount)
+        self["proof"] = int(proof)
+        self["timestamp"] = str(timestamp())
+
 if __name__ == '__main__':
-  genBlock = Block(0)
-  t1 = Transaction("Sender", "Reciever", 300)
-  t2 = Transaction("Jade", "Miguel", 900)
-  t3 = Transaction("Dustin", "Zach", 1500)
-  genBlock.addTransaction(t1)
-  genBlock.addTransaction(t2)
-  genBlock.addTransaction(t3)
-  blockchain = Blockchain(genBlock)
-  
-  for b in blockchain:
-    print(b)
-
-
+    ledger = Transaction()
