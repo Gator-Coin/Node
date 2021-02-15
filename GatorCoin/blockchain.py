@@ -111,12 +111,23 @@ class Block(dict):
 
 
 class Transaction(dict):
-    def __init__(self, sender, receiver, amount):
+    def __init__(self, sender, receiver, proof=0, amount=0):
+        """
+        This is a object that represents a transaction that will be loaded into a blockchain
+        TODO:   *Cryptographically authenticate this based on a private key.
+                *Confirm that the sender has enoguh currency to make the transaction.
+
+        :param sender: the public key of the sender
+        :param receiver: the public key of the receiver
+        :param proof: the cryptographic evedence that the sender is the one who created the transaction.
+        :param amount:  the amount of currency being sent to the receivers wallet.
+
+        """
         self["sender"] = sender
         self["receiver"] = receiver
         self["amount"] = int(amount)
+        self["proof"] = int(proof)
         self["timestamp"] = str(timestamp())
 
 if __name__ == '__main__':
-    ledger = Ledger()
-    ledger.add
+    ledger = Transaction()
