@@ -3,13 +3,14 @@
 
 
 from time import time as timestamp
+from uuid import uuid4 as generate_uuid
 from hashlib import sha256
 import json
 
-class Ledger(list):
+class Ledger(dict):
     def __init__(self, file_path = None):
         """ 
-        Creates a new Ledger object that cotains 
+        Creates a new Ledger object that cotains blocks, this should be a dict where the key is the hash of the block
 
         :param filename: loads from a file names relative or absolute path
         """
@@ -92,10 +93,11 @@ class Block(dict):
 
     :param filename: loads from a file names relative or absolute path
     """
-    def __init__(self, proof, transactions):
-        self["proof"] = proof
+    def __init__(self, prev_hash, nonce, transactions):
+        self["prev_hash"] = prev_hash
+        self["nonce"] = nonce
         self["transactions"] = transactions
-        self["timestamp"] = str(timestamp())
+        self["timestamp"] = int(timestamp())
 
     def __json__(self):
         """ 
@@ -111,11 +113,11 @@ class Block(dict):
 
 
 class Transaction(dict):
-    def __init__(self, sender, receiver, proof=0, amount=0):
+    def __init__(self, destination, signature, amount=0, fee=0):
         """
         This is a object that represents a transaction that will be loaded into a blockchain
-        TODO:   *Cryptographically authenticate this based on a private key.
-                *Confirm that the sender has enoguh currency to make the transaction.
+        TODO:   * Cryptographically authenticate this based on a private key.
+                * Encode and store this as raw bytes
 
         :param sender: the public key of the sender
         :param receiver: the public key of the receiver
@@ -123,11 +125,11 @@ class Transaction(dict):
         :param amount:  the amount of currency being sent to the receivers wallet.
 
         """
-        self["sender"] = sender
-        self["receiver"] = receiver
-        self["amount"] = int(amount)
-        self["proof"] = int(proof)
-        self["timestamp"] = str(timestamp())
+        self["txid"] = generate_uuid()
+        self["destination"] = destination
+        self["signature"] = signature
+        self['amount'] = amount
+        self['fee'] = fee
 
 if __name__ == '__main__':
     ledger = Transaction()
