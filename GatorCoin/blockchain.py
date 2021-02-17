@@ -15,6 +15,7 @@ class Ledger(dict):
         :param filename: loads from a file names relative or absolute path
         """
         self.pending_transactions = []
+        self.current_block = Block()
         if file_path:
             self.load(file_path)
         else:
@@ -88,12 +89,14 @@ class Ledger(dict):
         pass
 
 class Block(dict):
-    """ 
-    Creates a new block object
 
-    :param filename: loads from a file names relative or absolute path
-    """
     def __init__(self, prev_hash, nonce, transactions):
+        """ 
+        Creates a new block object
+
+        :param filename: loads from a file names relative or absolute path
+        :param nonce: This is a number used to alter the hash of the block to something determined valid by the block difficulty
+         """
         self["prev_hash"] = prev_hash
         self["nonce"] = nonce
         self["transactions"] = transactions
@@ -113,23 +116,57 @@ class Block(dict):
 
 
 class Transaction(dict):
-    def __init__(self, destination, signature, amount=0, fee=0):
+    def __init__(self, inputs, outputs, signature):
         """
         This is a object that represents a transaction that will be loaded into a blockchain
         TODO:   * Cryptographically authenticate this based on a private key.
                 * Encode and store this as raw bytes
+                * A transaction needs to have multiple inputs and outputs
 
-        :param sender: the public key of the sender
-        :param receiver: the public key of the receiver
+        :param inputs: a list of all transactions used as an inputs
+        :param outputs: a dict of {destinations: amount} pairs that corrispond to the destinations 
         :param proof: the cryptographic evedence that the sender is the one who created the transaction.
         :param amount:  the amount of currency being sent to the receivers wallet.
 
         """
-        self["txid"] = generate_uuid()
-        self["destination"] = destination
+        self["inputs"] = self.tx_outputs()
+        self["outputs"] = self.tx_inputs()
         self["signature"] = signature
-        self['amount'] = amount
-        self['fee'] = fee
+
+    class tx_inputs(list):
+        def __init__(self, inputs):
+            """
+            This inner class exists as a way to provide error checking to make sure all input transactions are valid signatures
+
+            :param inputs: a list of all transactions used as an inputs
+
+            """
+            for tx in inputs:
+                if(self.validate(tx)):
+                    self.append(tx)
+                else:
+                    raise TypeError(f"{tx} could not be converted to a tx_input")
+
+        def validate(tx_id):
+            """
+            TODO: Validate addresses to be correct format
+            """
+            return True
+
+    class tx_outputs(list):
+        def __init__(self, destinations):
+            for address, amount in destinations:
+                if(self.validate(address, amount)):
+                    self.append((address, amount))
+                else:
+                    raise TypeError(f"{(address, amount)} could not be converted to a destination address")
+
+        def validate(address, amount):
+            """
+            TODO: Validate addresses to be correct format
+            """
+            return True
+
 
 if __name__ == '__main__':
-    ledger = Transaction()
+    tx = Transaction()
