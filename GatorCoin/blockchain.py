@@ -1,7 +1,8 @@
 # please document code using this style
 # https://docutils.sourceforge.io/rst.html
-
-
+"""
+This file contains all of the data structures required to make a working blockchain. 
+"""
 from time import time as timestamp
 from uuid import uuid4 as generate_uuid
 from hashlib import sha256
@@ -133,6 +134,12 @@ class Transaction(dict):
         self["outputs"] = self.tx_inputs()
         self["signature"] = signature
 
+        def validate_transactions(self):
+            """
+            TODO:   * Validate that transaction inputs have enough currency to support the output transactions
+            """
+            return True
+
     class tx_inputs(list):
         def __init__(self, inputs):
             """
@@ -153,7 +160,16 @@ class Transaction(dict):
             """
             return True
 
+        def __str__(self):
+            return json.dumps(self)
+
     class tx_outputs(list):
+        """
+        This inner class exists as a way to provide error checking to make sure all out transactions are valid signatures amount pairs
+
+        :param inputs: a list of all transactions used as an inputs
+
+        """
         def __init__(self, destinations):
             for address, amount in destinations:
                 if(self.validate(address, amount)):
@@ -166,6 +182,9 @@ class Transaction(dict):
             TODO: Validate addresses to be correct format
             """
             return True
+
+        def __str__(self):
+            return json.dumps(self)
 
 
 if __name__ == '__main__':
