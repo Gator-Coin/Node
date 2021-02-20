@@ -1,23 +1,19 @@
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import PrivateFormat, Encoding
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
+import cryptography.exceptions
 
 class Crypto(Ed25519PrivateKey):
-    def __init__(self):
-        """
-        Creates key pait for a Ed25519 is an elliptic curve signing algorithm using EdDSA and Curve25519
-        """
-        super.__init__(self)
 
-    def generate(self):
+    def generate(self) -> Ed25519PrivateKey:
         """
         Generate an Ed25519 private key
 
         :returns: Ed25519PrivateKey
         """
-        return super.generate(self)
+        return super().generate()
 
-    def from_private_bytes(data):
+    def from_private_bytes(self, data):
         """
         this is the method to create a key pair from a bytes object loaded form a file.
 
@@ -25,6 +21,7 @@ class Crypto(Ed25519PrivateKey):
 
         :returns: Ed25519PrivateKey
         """
+        return super().from_private_bytes(data)
 
     def public_key(self) -> Ed25519PublicKey:
         """
@@ -50,3 +47,16 @@ class Crypto(Ed25519PrivateKey):
         :returns: Serialized Key
         """
         return super().private_bytes(encoding, format, encryption_algorithm)
+
+if __name__=="__main__":
+    # example of how to use this modual
+    crypto = Crypto().generate()    # Generate a new key pair and assign that to the variable crypto
+    signature = crypto.sign(b"Sign Here")       # Signs a byte string with the private key
+    public_key = crypto.public_key()            # generate the public key object
+    try:
+        public_key.verify(signature, b"Sign Here")
+    except cryptography.exceptions.InvalidKey as e:
+        print(e)
+    else:
+        print("valid Key")
+
