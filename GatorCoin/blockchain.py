@@ -92,13 +92,17 @@ class Ledger(dict):
 
 class Block(dict):
 
-    def __init__(self, prev_hash, nonce, transactions):
+    def __init__(self, prev_hash, nonce, transactions, network_identifier):
         """ 
         Creates a new block object
-
-        :param filename: loads from a file names relative or absolute path
+        
+        :param prev_hash: The hash of the last block.
+        :param network_identifier: this is used to identify which block chain this block is part of. 
         :param nonce: This is a number used to alter the hash of the block to something determined valid by the block difficulty
+        :param transactions: A list of transactions that needs to be added to the block. 
          """
+        
+        self["network_identifier"] = network_identifier
         self["prev_hash"] = prev_hash
         self["nonce"] = nonce
         self["transactions"] = transactions
