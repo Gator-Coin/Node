@@ -4,9 +4,10 @@
 This file contains all of the data structures required to make a working blockchain. 
 """
 from time import time as timestamp
-from uuid import uuid4 as generate_uuid
 from hashlib import sha256
+from cryptography import *
 import json
+import os
 
 class Ledger(dict):
     def __init__(self, file_path = None):
@@ -22,21 +23,21 @@ class Ledger(dict):
         else:
             self = list()
 
-    def add_transaction(self, sender, receiver, amount):
+    def add_transaction(self, inputs, outputs, signature):
         """ 
         Adds a new transactions to the pending_transactions list. 
     
         The pending_transactions list are all the transactions on the
         network that need to be packed into the next block. 
     
-        :param sender: public key of the sender
-        :param receiver: private key of the receiver
-        :param amount: Amount of curency being transacted 
+        :param inputs: the transactions to an address
+        :param outputs: the address of the recivers 
+        :param signature: the signature of the sender 
     
         :returns: true if the transaction was added to the list else returns the error
         """
         self.pending_transactions.append(
-            Transaction(sender, receiver, amount))
+            Transaction(inputs, outputs, signature))
 
     def new_block(self, proof):
         """ 
@@ -130,15 +131,30 @@ class Transaction(dict):
         :param amount:  the amount of currency being sent to the receivers wallet.
 
         """
-        self["inputs"] = self.tx_outputs()
-        self["outputs"] = self.tx_inputs()
-        self["signature"] = signature
+        self["inputs"] = self.tx_inputs(inputs)
+        self["outputs"] = self.tx_outputs(outputs)
+        self["signature"] = self.sign()
 
-        def validate_transactions(self):
+    @staticmethod
+    def validate_transactions(self):
             """
             TODO:   * Validate that transaction inputs have enough currency to support the output transactions
             """
             return True
+
+    def sign(self):
+        """
+        TODO: Implement signing the transaction with the private key to generate a signature
+        """
+        key = "some_key"
+        return key
+
+    def __json__(self):
+            return json.dumps(self)
+
+    def __str__(self):
+        n = "\n"
+        return f'Inputs:\n {"".join(str(self["inputs"]) + n)}Outputs:{n}{"".join(str(self["outputs"])) + n}Signature: {self["signature"]}'
 
     class tx_inputs(list):
         def __init__(self, inputs):
@@ -148,12 +164,13 @@ class Transaction(dict):
             :param inputs: a list of all transactions used as an inputs
 
             """
-            for tx in inputs:
-                if(self.validate(tx)):
-                    self.append(tx)
+            for tx_id in inputs:
+                if(self.validate(tx_id)):
+                    self.append(tx_id)
                 else:
                     raise TypeError(f"{tx} could not be converted to a tx_input")
-
+        
+        @staticmethod
         def validate(tx_id):
             """
             TODO: Validate addresses to be correct format
@@ -177,6 +194,7 @@ class Transaction(dict):
                 else:
                     raise TypeError(f"{(address, amount)} could not be converted to a destination address")
 
+        @staticmethod
         def validate(address, amount):
             """
             TODO: Validate addresses to be correct format
@@ -188,4 +206,5 @@ class Transaction(dict):
 
 
 if __name__ == '__main__':
-    tx = Transaction()
+    tx = Transaction([1234], [(5,2)], "signature")
+
