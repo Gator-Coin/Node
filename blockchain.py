@@ -3,11 +3,12 @@
 """
 This file contains all of the data structures required to make a working blockchain. 
 """
+from crypto import Key
 from time import time as timestamp
 from hashlib import sha256
-from cryptography import *
+from time import time_ns
 import json
-import os
+
 
 class Ledger(dict):
     def __init__(self, file_path = None):
@@ -23,7 +24,7 @@ class Ledger(dict):
         else:
             self = list()
 
-    def add_transaction(self, inputs, outputs, signature):
+    def add_transaction(self, inputs: list, outputs: list, signature: bytes):
         """ 
         Adds a new transactions to the pending_transactions list. 
     
@@ -34,12 +35,12 @@ class Ledger(dict):
         :param outputs: the address of the recivers 
         :param signature: the signature of the sender 
     
-        :returns: true if the transaction was added to the list else returns the error
+        :throws: invalid transaction if the transaction is not valid.
         """
         self.pending_transactions.append(
             Transaction(inputs, outputs, signature))
 
-    def new_block(self, proof):
+    def new_block(self, proof: bytes):
         """ 
         TODO: Create a new_block method
     
@@ -51,7 +52,7 @@ class Ledger(dict):
         """
         pass
 
-    def save(self, file_path):
+    def save(self, file_path: str):
         """ 
         Overwrite a file with the blockchain
     
@@ -64,7 +65,7 @@ class Ledger(dict):
         json.dump(self, open(file_path, 'w'))
 
 
-    def load(self, file_path):
+    def load(self, file_path: str):
         """ 
         Loads a json file containing the blockchain
     
@@ -76,7 +77,7 @@ class Ledger(dict):
         """
         json.load(self, open(file_path, 'r'))
 
-    def update(self, file_path):
+    def update(self, file_path: str):
         """ 
         TODO: Create a function that appends a file with blocks not yet added to file
         its important to make this work incrementally so when the file grows large the
@@ -92,7 +93,7 @@ class Ledger(dict):
 
 class Block(dict):
 
-    def __init__(self, prev_hash, nonce, transactions, network_identifier):
+    def __init__(self, prev_hash: bytes, nonce: bytes, transactions: list, network_identifier: bytes):
         """ 
         Creates a new block object
         
@@ -108,13 +109,13 @@ class Block(dict):
         self["transactions"] = transactions
         self["timestamp"] = int(timestamp())
 
-    def __json__(self):
+    def __json__(self) -> str:
         """ 
         :returns: the json representation of the block in the correct format to work with the hasing function
         """
         return json.dumps(self, indent=2, sort_keys=True)
 
-    def hash(self):
+    def hash(self) -> str:
         """ 
         :returns: a hexidecimal hash that is unique to the block
         """
@@ -122,7 +123,7 @@ class Block(dict):
 
 
 class Transaction(dict):
-    def __init__(self, inputs, outputs, signature):
+    def __init__(self, inputs: list, outputs: list, key: Key):
         """
         This is a object that represents a transaction that will be loaded into a blockchain
         TODO:   * Cryptographically authenticate this based on a private key.
@@ -135,25 +136,27 @@ class Transaction(dict):
         :param amount:  the amount of currency being sent to the receivers wallet.
 
         """
+        self["uuid"] = sha256().hash(str(time_ns().encode('utf-8'))).hexdigest()
+        self["public_key"] = key.public_key().public_bytes()
         self["inputs"] = self.tx_inputs(inputs)
         self["outputs"] = self.tx_outputs(outputs)
-        self["signature"] = self.sign()
+        #self["signature"] = self.sign()
 
     @staticmethod
-    def validate_transactions(self):
+    def validate_transactions(self) -> bool:
             """
-            TODO:   * Validate that transaction inputs have enough currency to support the output transactions
+            TODO: * Validate that transaction inputs have enough currency to support the output transactions
             """
             return True
 
-    def sign(self):
+    def sign(self, key: Key) -> bytes:
         """
         TODO: Implement signing the transaction with the private key to generate a signature
         """
-        key = "some_key"
-        return key
+        self["signature"] = key.sign(self["uuid"].encode('utf-8'))
+        
 
-    def __json__(self):
+    def __json__(self) -> str:
             return json.dumps(self)
 
     def __str__(self):
@@ -161,7 +164,7 @@ class Transaction(dict):
         return f'Inputs:\n {"".join(str(self["inputs"]) + n)}Outputs:{n}{"".join(str(self["outputs"])) + n}Signature: {self["signature"]}'
 
     class tx_inputs(list):
-        def __init__(self, inputs):
+        def __init__(self, inputs: list):
             """
             This inner class exists as a way to provide error checking to make sure all input transactions are valid signatures
 
@@ -175,13 +178,13 @@ class Transaction(dict):
                     raise TypeError(f"{tx} could not be converted to a tx_input")
         
         @staticmethod
-        def validate(tx_id):
+        def validate(tx_id: bytes) -> bool :
             """
             TODO: Validate addresses to be correct format
             """
             return True
 
-        def __str__(self):
+        def __str__(self) -> str:
             return json.dumps(self)
 
     class tx_outputs(list):
@@ -191,7 +194,7 @@ class Transaction(dict):
         :param inputs: a list of all transactions used as an inputs
 
         """
-        def __init__(self, destinations):
+        def __init__(self, destinations: list):
             for address, amount in destinations:
                 if(self.validate(address, amount)):
                     self.append((address, amount))
@@ -199,13 +202,13 @@ class Transaction(dict):
                     raise TypeError(f"{(address, amount)} could not be converted to a destination address")
 
         @staticmethod
-        def validate(address, amount):
+        def validate(address: bytes, amount: int) -> bool:
             """
             TODO: Validate addresses to be correct format
             """
             return True
 
-        def __str__(self):
+        def __str__(self) -> str:
             return json.dumps(self)
 
 

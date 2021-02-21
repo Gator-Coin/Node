@@ -1,9 +1,9 @@
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from cryptography.hazmat.primitives.serialization import PrivateFormat, Encoding
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey 
 import cryptography.exceptions
 
-class Crypto(Ed25519PrivateKey):
+class Key(Ed25519PrivateKey):
 
     def generate(self) -> Ed25519PrivateKey:
         """
@@ -13,7 +13,7 @@ class Crypto(Ed25519PrivateKey):
         """
         return super().generate()
 
-    def from_private_bytes(self, data):
+    def from_private_bytes(self, data) -> Ed25519PrivateKey:
         """
         this is the method to create a key pair from a bytes object loaded form a file.
 
@@ -28,7 +28,6 @@ class Crypto(Ed25519PrivateKey):
         :returns: Ed25519PublicKey
         """
         return super().public_key()
-
 
     def sign(self, data: bytes) -> bytes:
         """
