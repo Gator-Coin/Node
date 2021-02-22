@@ -1,19 +1,32 @@
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from cryptography.hazmat.primitives.serialization import PrivateFormat, Encoding
+from cryptography.hazmat.primitives.serialization import PrivateFormat, Encoding, PublicFormat, NoEncryption
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey 
 import cryptography.exceptions
 
-class Key(Ed25519PrivateKey):
+class Key_Ring(object):
 
-    def generate(self) -> Ed25519PrivateKey:
+    def private_key(self) -> Ed25519PrivateKey:
+        """
+        :returns: Ed25519PrivateKey
+        """
+        return self.secret
+
+    def public_key(self) -> Ed25519PublicKey:
+        """
+        :returns: Ed25519PublicKey
+        """
+        return self.private_key().public_key()
+
+    def generate(self) -> None:
         """
         Generate an Ed25519 private key
 
         :returns: Ed25519PrivateKey
         """
-        return super().generate()
+        self.secret = Ed25519PrivateKey.generate()
 
-    def from_private_bytes(self, data) -> Ed25519PrivateKey:
+
+    def load_key(self, data) -> None:
         """
         this is the method to create a key pair from a bytes object loaded form a file.
 
@@ -21,41 +34,78 @@ class Key(Ed25519PrivateKey):
 
         :returns: Ed25519PrivateKey
         """
-        return super().from_private_bytes(data)
-
-    def public_key(self) -> Ed25519PublicKey:
-        """
-        :returns: Ed25519PublicKey
-        """
-        return super().public_key()
+        return Ed25519PrivateKey.from_private_bytes(data)
 
     def sign(self, data: bytes) -> bytes:
         """
         :params data: a bytes primative to encypt
         :returns: a 64 byte signature
         """
-        return super().sign(data)
 
-    def private_bytes(self, encoding: Encoding.PEM, format: PrivateFormat.PKCS8, encryption_algorithm: EllipticCurvePrivateKey) -> bytes:
+        return self.private_key().sign(data)
+
+    def private_bytes(self) -> bytes:
         """
-        Allows serialization of the key to bytes. 
-        :param encoding: A value form the Encoding Enum
-        :param format: A value from the PrivateFormat Enum
-        :param encryption_algorithm: An instance of an object conforming to the KeySerializationEncryption interface.
+        serializes the private key to bytes 
 
         :returns: Serialized Key
         """
-        return super().private_bytes(encoding, format, encryption_algorithm)
+
+        private_bytes = self.private_key().private_bytes(
+            encoding=Encoding.PEM, 
+            format=PrivateFormat.PKCS8, 
+            encryption_algorithm=NoEncryption()
+        )
+
+        if private_bytes == None:
+            raise Exception()
+        return private_bytes
+    
+    def public_bytes(self) -> bytes:
+        """
+        serializes the public key to bytes
+
+        :returns: Serialized Key
+        """
+        return self.public_key().public_bytes(
+            encoding=Encoding.PEM,
+            format=PublicFormat.SubjectPublicKeyInfo
+        )
+
+    def verify(self, signature, data) -> None:
+        """
+        Allows serialization of the key to bytes. 
+        :param signature: The signature to verify
+        :param data: the data to verify
+
+        :raises cryptography.exceptions.InvalidSignature: Raised when the signature cannot be verified.
+        """
+        self.public_key().verify(signature, data)
+
 
 if __name__=="__main__":
     # example of how to use this modual
-    crypto = Crypto().generate()    # Generate a new key pair and assign that to the variable crypto
-    signature = crypto.sign(b"Sign Here")       # Signs a byte string with the private key
-    public_key = crypto.public_key()            # generate the public key object
+    key = Key_Ring()
+    key.generate()
+    signature = key.sign(b"Sign Here")
+
+
+    # how to verify a signature
     try:
-        public_key.verify(signature, b"Sign Here")
+        key.verify(signature, b"Sign Here")
+
     except cryptography.exceptions.InvalidKey as e:
         print(e)
     else:
         print("valid Key")
 
+    # how to print the key
+    print("==================================")
+    print(key.private_bytes().decode("utf8"))
+    print(key.public_bytes().decode("utf8"))
+    print("==================================")
+    # how to load a key
+    saved_key = key.private_bytes()
+    key2 = Key_Ring()
+    key2.load_key(saved_key)
+    print(key2.private_bytes().decode("utf8"))
