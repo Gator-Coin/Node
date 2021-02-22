@@ -1,5 +1,5 @@
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from cryptography.hazmat.primitives.serialization import PrivateFormat, Encoding, PublicFormat, NoEncryption
+from cryptography.hazmat.primitives.serialization import BestAvailableEncryption, PrivateFormat, Encoding, PublicFormat, NoEncryption, load_pem_private_key
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey 
 import cryptography.exceptions
 
@@ -33,8 +33,10 @@ class Key_Ring(object):
         :param data: a bytes like 32 bit private key
 
         :returns: Ed25519PrivateKey
+        
         """
-        return Ed25519PrivateKey.from_private_bytes(data)
+        
+        self.secret = load_pem_private_key(data, password=None)
 
     def sign(self, data: bytes) -> bytes:
         """
