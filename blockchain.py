@@ -13,7 +13,7 @@ import json
 class Ledger(dict):
     def __init__(self, file_path = None):
         """ 
-        Creates a new Ledger object that cotains blocks, this should be a dict where the key is the hash of the block
+        Creates a new Ledger object that contains blocks, this should be a dict where the key is the hash of the block
 
         :param filename: loads from a file names relative or absolute path
         """
