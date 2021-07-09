@@ -70,8 +70,8 @@ class Key_Ring(object):
         :returns: Serialized Key
         """
         return self.public_key().public_bytes(
-            encoding=Encoding.PEM,
-            format=PublicFormat.SubjectPublicKeyInfo
+            encoding=Encoding.Raw,
+            format=PublicFormat.Raw
         )
 
     def verify(self, signature, data) -> None:

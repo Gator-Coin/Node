@@ -3,7 +3,7 @@
 """
 This file contains all of the data structures required to make a working blockchain. 
 """
-from crypto import Key
+from crypto import Key_Ring
 from time import time as timestamp
 from hashlib import sha256
 from time import time_ns
@@ -38,7 +38,7 @@ class Ledger(dict):
         :throws: invalid transaction if the transaction is not valid.
         """
         self.pending_transactions.append(
-            Transaction(inputs, outputs, signature))
+            Transaction(inputs, outputs))
 
     def new_block(self, proof: bytes):
         """ 
@@ -123,7 +123,7 @@ class Block(dict):
 
 
 class Transaction(dict):
-    def __init__(self, inputs: list, outputs: list, key: Key):
+    def __init__(self, inputs: list, outputs: list, key: Key_Ring):
         """
         This is a object that represents a transaction that will be loaded into a blockchain
         TODO:   * Cryptographically authenticate this based on a private key.
@@ -136,11 +136,9 @@ class Transaction(dict):
         :param amount:  the amount of currency being sent to the receivers wallet.
 
         """
-        self["uuid"] = sha256().hash(str(time_ns().encode('utf-8'))).hexdigest()
-        self["public_key"] = key.public_key().public_bytes()
+        self["public_key"] = key.public_bytes().decode()
         self["inputs"] = self.tx_inputs(inputs)
         self["outputs"] = self.tx_outputs(outputs)
-        #self["signature"] = self.sign()
 
     @staticmethod
     def validate_transactions(self) -> bool:
@@ -149,19 +147,35 @@ class Transaction(dict):
             """
             return True
 
-    def sign(self, key: Key) -> bytes:
+    def sign(self, key: Key_Ring) -> bytes:
         """
         TODO: Implement signing the transaction with the private key to generate a signature
         """
-        self["signature"] = key.sign(self["uuid"].encode('utf-8'))
+        return key.sign(self.serialize())
         
-
-    def __json__(self) -> str:
-            return json.dumps(self)
-
+    @classmethod
     def __str__(self):
-        n = "\n"
-        return f'Inputs:\n {"".join(str(self["inputs"]) + n)}Outputs:{n}{"".join(str(self["outputs"])) + n}Signature: {self["signature"]}'
+        return super().__str__()
+
+    @classmethod
+    def serialize(self) -> bytes:
+            """
+            This should return the serialized bytes representing the transaction
+
+            :returns: the serialized bytes
+
+            """
+            return json.dumps(self, sort_keys=True).encode("utf8")
+
+    @staticmethod
+    def deserialize(bytes: bytes) -> "Transaction":
+            """
+            This should a transaction from serialized bytes
+
+            :param bytes: a transaction
+            """
+            return json.loads(bytes)
+            
 
     class tx_inputs(list):
         def __init__(self, inputs: list):
@@ -213,5 +227,9 @@ class Transaction(dict):
 
 
 if __name__ == '__main__':
-    tx = Transaction([1234], [(5,2)], "signature")
+    key = Key_Ring()
+    key.generate()
+
+    tx = Transaction([1234], [(5,2)], key)
+    print(json.dumps(tx))
 
